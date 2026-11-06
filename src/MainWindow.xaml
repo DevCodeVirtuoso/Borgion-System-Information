@@ -1,0 +1,148 @@
+<Window x:Class="BorgionSystemInfo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Borgion System Information"
+        Icon="Assets/app.ico"
+        Width="760" Height="760" MinWidth="560" MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgBrush}" FontFamily="Segoe UI"
+        Foreground="{StaticResource TextBrush}"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+    <Window.InputBindings>
+        <KeyBinding Key="F5" Command="{x:Static NavigationCommands.Refresh}"/>
+        <KeyBinding Key="C" Modifiers="Ctrl+Shift" Command="{x:Static ApplicationCommands.Copy}"/>
+    </Window.InputBindings>
+    <Window.CommandBindings>
+        <CommandBinding Command="{x:Static NavigationCommands.Refresh}" Executed="Refresh_Executed"/>
+        <CommandBinding Command="{x:Static ApplicationCommands.Copy}" Executed="CopyAll_Executed"/>
+    </Window.CommandBindings>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ============ Bovenbalk ============ -->
+        <Border Background="{StaticResource PrimaryBrush}" Padding="26,18,26,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="BORGION" FontSize="13" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                    <TextBlock Text="System Information" FontSize="24" FontWeight="SemiBold" Foreground="White" Margin="0,-2,0,0"/>
+                    <TextBlock x:Name="SubText" FontSize="13" Foreground="White" Opacity="0.8" Margin="0,6,0,0"
+                               TextTrimming="CharacterEllipsis" Text="Systeemgegevens ophalen…"/>
+                </StackPanel>
+                <Border Grid.Column="1" Width="54" Height="54" CornerRadius="27" Background="{StaticResource PrimaryLightBrush}"
+                        VerticalAlignment="Center">
+                    <ContentPresenter ContentTemplate="{StaticResource InfoIcon}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+            </Grid>
+        </Border>
+        <Border Height="4" Background="{StaticResource AccentBrush}" VerticalAlignment="Bottom"/>
+
+        <!-- ============ Inhoud ============ -->
+        <Grid Grid.Row="1">
+            <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto" Focusable="False" Padding="20,16,20,4">
+                <ItemsControl x:Name="Sections" Focusable="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White" CornerRadius="14" Margin="0,0,0,14" Padding="22,14,14,10"
+                                    BorderBrush="{StaticResource LineBrush}" BorderThickness="1">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,6">
+                                        <TextBlock Text="{Binding Title}" FontSize="17" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        <Button Style="{StaticResource LinkButton}" HorizontalAlignment="Right" Tag="{Binding}"
+                                                Click="CopySection_Click" ToolTip="Deze sectie naar het klembord kopiëren">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="12" Margin="0,2,6,0"/>
+                                                <TextBlock Text="Sectie kopiëren"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                    <ItemsControl ItemsSource="{Binding Items}" Focusable="False">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border x:Name="row" Background="Transparent" CornerRadius="6" Padding="0,6,0,6"
+                                                        BorderBrush="{StaticResource BgBrush}" BorderThickness="0,1,0,0">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="210"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Label}" FontSize="13.5" Foreground="{StaticResource MutedBrush}"
+                                                                   TextWrapping="Wrap" Margin="0,0,12,0" VerticalAlignment="Top" Padding="0,1,0,0"/>
+                                                        <TextBox Grid.Column="1" Text="{Binding Value, Mode=OneWay}" Style="{StaticResource ValueText}"
+                                                                 VerticalAlignment="Top"/>
+                                                        <Button x:Name="copy" Grid.Column="2" Style="{StaticResource IconButton}" Tag="{Binding}"
+                                                                Click="CopyItem_Click" Opacity="0" VerticalAlignment="Top" Margin="6,-4,0,-4"/>
+                                                    </Grid>
+                                                </Border>
+                                                <DataTemplate.Triggers>
+                                                    <Trigger SourceName="row" Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="row" Property="Background" Value="{StaticResource RowHoverBrush}"/>
+                                                        <Setter TargetName="copy" Property="Opacity" Value="1"/>
+                                                    </Trigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Laden -->
+            <StackPanel x:Name="LoadingPanel" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" Width="220" Height="6" Foreground="{StaticResource AccentBrush}"
+                             Background="{StaticResource LineBrush}" BorderThickness="0"/>
+                <TextBlock Text="Systeemgegevens ophalen…" FontSize="14" Foreground="{StaticResource MutedBrush}"
+                           HorizontalAlignment="Center" Margin="0,12,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- ============ Onderbalk ============ -->
+        <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="20,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <Border x:Name="Toast" Background="{StaticResource SuccessSoftBrush}" CornerRadius="8" Padding="10,6"
+                            HorizontalAlignment="Left" Opacity="0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" Foreground="{StaticResource SuccessBrush}"
+                                       FontSize="13" Margin="0,2,8,0"/>
+                            <TextBlock x:Name="ToastText" Foreground="{StaticResource SuccessBrush}" FontSize="13" FontWeight="SemiBold"
+                                       Text="Gekopieerd naar het klembord"/>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock x:Name="VersionText" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0"
+                               Text="F5 = vernieuwen  ·  Ctrl+Shift+C = alles kopiëren"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="RefreshButton" Style="{StaticResource SecondaryButton}" Click="Refresh_Click" Margin="0,0,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" FontSize="14" Margin="0,2,8,0"/>
+                            <TextBlock Text="Vernieuwen"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="CopyAllButton" Style="{StaticResource BaseButton}" Click="CopyAll_Click" IsEnabled="False">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="14" Margin="0,2,8,0"/>
+                            <TextBlock Text="Alles kopiëren"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
